@@ -1,24 +1,5 @@
-from flask import Flask, request, jsonify
-from datetime import datetime
+"""Compatibility import for the connection router app."""
 
-app = Flask(__name__)
+from backend.main import app, create_connection, reset_store
 
-connections = []
-
-@app.route('/connections', methods=['POST'])
-def create_connection():
-    data = request.json
-    connection = {
-        'id': len(connections),
-        'name': data['name'],
-        'dialect': data['dialect'],
-        'host': data['host'],
-        'port': data['port'],
-        'database': data['database'],
-        'mode': data['mode'],
-        'introspection_status': data['introspection_status'],
-        'created_at': datetime.utcnow().isoformat(),
-        'status_url': f"/connections/{len(connections)}"
-    }
-    connections.append(connection)
-    return jsonify(connection), 201
+__all__ = ["app", "create_connection", "reset_store"]
