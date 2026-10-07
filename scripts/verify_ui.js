@@ -1,3 +1,1 @@
-const { spawnSync } = require('child_process');
-const result = spawnSync('node', ['--test', 'frontend/tests'], { stdio: 'inherit' });
-process.exit(result.status === null ? 1 : result.status);
+const {spawnSync}=require('child_process');const r=spawnSync('node',['--test','frontend/tests'],{stdio:'inherit'});process.exit(r.status??1);

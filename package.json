@@ -1,9 +1,8 @@
 {
   "name": "dbport",
   "private": true,
-  "type": "module",
   "scripts": {
-    "test": "node --test frontend/tests/*.test.js",
+    "test": "node --test frontend/tests",
     "dev": "vite",
     "build": "vite build"
   },
