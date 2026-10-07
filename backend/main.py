@@ -14,6 +14,7 @@ _connections: list[dict] = []
 _tables: dict[str, dict[str, list[dict]]] = {}
 # connection_id -> introspection meta
 _introspection: dict[str, dict] = {}
+_audit: list[dict] = []
 
 
 class ConnectionCreate(BaseModel):
@@ -140,3 +141,52 @@ def reset_store() -> None:
     _connections.clear()
     _tables.clear()
     _introspection.clear()
+    _audit.clear()
+
+
+class RowWrite(BaseModel):
+    values: dict
+
+
+@app.get("/connections")
+def list_connections() -> dict:
+    return {
+        "connections": list(_connections),
+        "total": len(_connections),
+        "limit": 50,
+    }
+
+
+@app.post("/connections/{connection_id}/tables/{table}/rows", status_code=201)
+def insert_row(connection_id: str, table: str, body: RowWrite) -> dict:
+    """Write path that records audit before responding (FR-004)."""
+
+    connection = _get_connection(connection_id)
+    tables = _tables.setdefault(connection_id, {})
+    if table not in tables:
+        raise HTTPException(status_code=404, detail="table_not_found")
+    pending = {
+        "id": str(uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "connection_id": connection_id,
+        "connection_name": connection["name"],
+        "table": table,
+        "operation": "insert",
+        "status": "pending",
+        "affected_rows": 0,
+        "error_code": None,
+        "statement_hash": "insert",
+    }
+    try:
+        _audit.append(pending)
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=500, detail="audit_unavailable") from exc
+    tables[table].append(dict(body.values))
+    pending["status"] = "succeeded"
+    pending["affected_rows"] = 1
+    return {"row": body.values, "audit_entry_id": pending["id"]}
+
+
+@app.get("/audit")
+def list_audit() -> dict:
+    return {"entries": list(_audit), "next_cursor": None, "total": len(_audit)}
