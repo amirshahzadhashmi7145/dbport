@@ -65,7 +65,7 @@ def create_connection(body: ConnectionCreate) -> dict:
         "mode": body.mode,
         "introspection_status": "pending",
         "created_at": now.isoformat(),
-        "status_url": f"/connections/{connection_id}/introspection",
+        "status_url": f"/connections/{connection_id}",
     }
     _connections.append(record)
     return record
