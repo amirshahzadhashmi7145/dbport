@@ -3,12 +3,13 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 
-const root = path.resolve('frontend/src')
+const src = fs.readFileSync(path.resolve('frontend/src/AddConnectionForm.tsx'), 'utf8')
 
-test('add connection form posts and expects 201 Created', () => {
-  const src = fs.readFileSync(path.join(root, 'AddConnectionForm.tsx'), 'utf8')
+test('add connection form expects 201 and FR-001 body fields', () => {
   assert.match(src, /fetch\('\/connections'/)
   assert.match(src, /method:\s*'POST'/)
-  assert.match(src, /status !== 201|status === 201|201/)
-  assert.match(src, /Add connection/)
+  assert.match(src, /status !== 201/)
+  for (const key of ['id', 'name', 'dialect', 'host', 'port', 'database', 'mode', 'introspection_status', 'created_at', 'status_url']) {
+    assert.match(src, new RegExp(key))
+  }
 })

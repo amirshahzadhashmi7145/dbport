@@ -5,7 +5,7 @@ type Props = { onCreated: (id: string) => void }
 export function AddConnectionForm({ onCreated }: Props) {
   const [name, setName] = useState('local')
   const [error, setError] = useState<string | null>(null)
-  const [lastStatus, setLastStatus] = useState<number | null>(null)
+  const [created, setCreated] = useState<any>(null)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,12 +24,16 @@ export function AddConnectionForm({ onCreated }: Props) {
         password: 'p',
       }),
     })
-    setLastStatus(response.status)
     if (response.status !== 201) {
       setError(`Failed with ${response.status}`)
       return
     }
     const body = await response.json()
+    // FR-001 body contract
+    for (const key of ['id', 'name', 'dialect', 'host', 'port', 'database', 'mode', 'introspection_status', 'created_at', 'status_url']) {
+      if (!(key in body)) throw new Error(`missing ${key}`)
+    }
+    setCreated(body)
     onCreated(body.id)
   }
 
@@ -40,7 +44,13 @@ export function AddConnectionForm({ onCreated }: Props) {
         <input value={name} onChange={(e) => setName(e.target.value)} name="name" />
       </label>
       <button type="submit">Add connection</button>
-      {lastStatus !== null ? <p data-testid="create-status">status {lastStatus}</p> : null}
+      {created ? (
+        <pre data-testid="created-connection">
+          {created.id} {created.name} {created.dialect} {created.host} {created.port}{' '}
+          {created.database} {created.mode} {created.introspection_status} {created.created_at}{' '}
+          {created.status_url}
+        </pre>
+      ) : null}
       {error ? <p role="alert">{error}</p> : null}
     </form>
   )
