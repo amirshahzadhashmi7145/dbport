@@ -63,7 +63,7 @@ def create_connection(body: ConnectionCreate) -> dict:
         "host": body.host,
         "port": body.port,
         "database": body.database,
-        "mode": "read_only",
+        "mode": body.mode,
         "introspection_status": "complete",
         "created_at": now.isoformat(),
         "status_url": f"/connections/{connection_id}/introspection",
