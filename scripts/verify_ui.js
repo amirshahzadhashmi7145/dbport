@@ -1,10 +1,3 @@
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-assert.ok(fs.existsSync(path.join(__dirname, '..', 'package.json')), 'package.json missing');
-const zone = "frontend";
-assert.ok(
-  fs.existsSync(zone) || fs.existsSync('web') || fs.existsSync('frontend'),
-  'frontend zone missing'
-);
-process.exit(0);
+const { spawnSync } = require('child_process');
+const result = spawnSync('node', ['--test', 'frontend/tests'], { stdio: 'inherit' });
+process.exit(result.status === null ? 1 : result.status);
