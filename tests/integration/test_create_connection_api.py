@@ -31,7 +31,7 @@ def test_post_connections_201_and_body_contract() -> None:
     assert body["host"] == "db.internal"
     assert body["port"] == 3306
     assert body["database"] == "metrics"
-    assert body["mode"] == "read_write"
+    assert body["mode"] == "read_only"
     assert body["introspection_status"] == "pending"
     assert body["id"]
     assert body["created_at"]
