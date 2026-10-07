@@ -1,0 +1,7 @@
+{
+  "name": "atelier-project",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/verify_ui.js"
+  }
+}
