@@ -2,7 +2,7 @@
   "name": "dbport",
   "private": true,
   "scripts": {
-    "test": "node --test frontend/tests",
+    "test": "node scripts/run_frontend_tests.js",
     "dev": "vite",
     "build": "vite build"
   },
