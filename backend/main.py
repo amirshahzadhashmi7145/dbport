@@ -47,14 +47,13 @@ def create_connection(body: ConnectionCreate) -> dict:
             {"id": 2, "email": "b@example.com"},
         ]
     }
-    started = now
-    completed = datetime.now(timezone.utc)
     _introspection[connection_id] = {
-        "status": "complete",
-        "table_count": 1,
-        "completed_at": completed.isoformat(),
-        "duration_ms": max(1, int((completed - started).total_seconds() * 1000)),
+        "status": "pending",
+        "table_count": 0,
+        "completed_at": None,
+        "duration_ms": 0,
         "error_code": None,
+        "started_at": now,
     }
     record = {
         "id": connection_id,
@@ -64,7 +63,7 @@ def create_connection(body: ConnectionCreate) -> dict:
         "port": body.port,
         "database": body.database,
         "mode": body.mode,
-        "introspection_status": "complete",
+        "introspection_status": "pending",
         "created_at": now.isoformat(),
         "status_url": f"/connections/{connection_id}/introspection",
     }
@@ -106,10 +105,24 @@ def get_table_rows(
 
 @app.get("/connections/{connection_id}/introspection")
 def get_introspection(connection_id: str) -> dict:
-    _get_connection(connection_id)
+    connection = _get_connection(connection_id)
     meta = _introspection.get(connection_id)
     if meta is None:
         return {"status": "pending", "table_count": 0, "completed_at": None, "duration_ms": 0}
+    # First status poll completes introspection when tables are already seeded.
+    if meta["status"] == "pending":
+        started = meta.get("started_at") or datetime.now(timezone.utc)
+        completed = datetime.now(timezone.utc)
+        table_count = len(_tables.get(connection_id, {}))
+        meta.update(
+            {
+                "status": "complete",
+                "table_count": table_count,
+                "completed_at": completed.isoformat(),
+                "duration_ms": max(1, int((completed - started).total_seconds() * 1000)),
+            }
+        )
+        connection["introspection_status"] = "complete"
     body = {
         "status": meta["status"],
         "table_count": meta["table_count"],
